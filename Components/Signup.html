@@ -81,10 +81,10 @@
 <body>
     <div class="container">
         <h2>Create MediConnect Account</h2>
-        <form id="signupForm">
+        <form action="/signup" method="POST">
             <div class="form-group">
-                <label for="fullname">Full Name</label>
-                <input type="text" id="fullname" name="fullname" required>
+                <label for="username">User Name</label>
+                <input type="text" id="username" name="username" required>
             </div>
             <div class="form-group">
                 <label for="email">Email</label>
@@ -101,7 +101,7 @@
             <button type="submit">Create Account</button>
         </form>
         <div class="login-link">
-            Already have an account? <a href="login.html">Login here</a>
+            Already have an account? <a href="/login">Login here</a>
         </div>
     </div>
 </body>

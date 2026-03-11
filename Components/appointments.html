@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments - Medi-Connect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        form {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        input {
+            padding: 8px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .appointment-item {
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            margin: 10px 0;
+            background: #f9f9f9;
+        }
+        a {
+            color: #dc3545;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h2>Appointments</h2>
+
+    <form action="/create_appointment" method="post">
+        <label for="patient">Patient Name:</label>
+        <input type="text" id="patient" name="patient" required>
+
+        <label for="doctor">Doctor Name:</label>
+        <input type="text" id="doctor" name="doctor" required>
+
+        <label for="date">Date:</label>
+        <input type="datetime-local" id="date" name="date" required>
+
+        <button type="submit">Create Appointment</button>
+    </form>
+
+    <hr>
+
+    <h3>Existing Appointments</h3>
+    {% for appointment in appointments %}
+        <div class="appointment-item">
+            <p>
+                {{ appointment.patient_name }} with {{ appointment.doctor_name }} on {{ appointment.appointment_date }}
+                <a href="/edit/{{ appointment.id }}">Edit</a> |
+                <a href="/delete/{{ appointment.id }}">Delete</a>
+            </p>
+        </div>
+    {% endfor %}
+</body>
+</html>

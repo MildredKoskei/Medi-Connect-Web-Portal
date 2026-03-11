@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Appointment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        input {
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h2>Edit Appointment</h2>
+    <form action="/update_appointment/{{appointment.id}}" method="post">
+        <label for="patient_name">Patient Name</label>
+        <input type="text" id="patient_name" name="patient_name" value="{{appointment.patient_name}}" required>
+
+        <label for="doctor_name">Doctor Name</label>
+        <input type="text" id="doctor_name" name="doctor_name" value="{{appointment.doctor_name}}" required>
+
+        <label for="appointment_date">Date</label>
+        <input type="date" id="appointment_date" name="appointment_date" value="{{appointment.appointment_date}}" required>
+
+        <button type="submit">Update Appointment</button>
+    </form>
+</body>
+</html>

@@ -30,29 +30,35 @@ def signup():
 
         return redirect('/')
     return render_template('signup.html')
-
-#LOGIN PAGE
-@app.route('/login', methods=['POST'])
+#logging in
+@app.route('/login', methods=['GET', 'POST'])
 def login_post():
-    username = request.form['username']
-    password = request.form['password']
 
-    conn = get_db_connection()
-    #vulnerability 2: weak authentication - brute force attack possible
-    user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?',
-                        (username, password)
-                        ).fetchone()
-    if user:
-        # vulnerability: 3 - no session management - vulnerability 3: session fixation and hijacking possible
-        if user['role'] == 'admin':
-            return redirect('/admin')
-        if user['role'] == 'doctor':
-            return redirect('/doctor')
-        if user['role'] == 'patient':
-            return redirect('/patient')
-        else:
-            return ("login failed")
-        #patients landing page
+    if request.method == 'POST':
+
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        conn = get_db_connection()
+#vulnerability 1: no password hashing - passwords stored in plaintext
+        user = conn.execute(
+            'SELECT * FROM users WHERE username = ? AND password = ?',
+            (username, password)
+        ).fetchone()
+#vulnerability 2: weak authentication - brute force attack possible - no account lockout mechanism
+        if user:
+            if user['role'] == 'admin':
+                return redirect('/admin')
+            elif user['role'] == 'doctor':
+                return redirect('/doctor')
+            elif user['role'] == 'patient':
+                return redirect('/patient')
+
+        return "Login failed"
+
+    # If it's a GET request, just show the login page
+    return render_template('login.html')
+
 @app.route('/patient')
 def patient_dashboard():
     #anyon e can access this page without authentication - vulnerability 4: unauthorized access
@@ -68,6 +74,36 @@ def doctor_dashboard():
 def admin_dashboard():
     #anyon e can access this page without authentication - vulnerability 4: unauthorized access
     return render_template('admin_dashboard.html')
+
+#appointments page
+@app.route('/appointments')
+def view_appointments():
+    conn = get_db_connection()
+    appointments = conn.execute('SELECT * FROM appointments').fetchall()
+    return render_template('appointments.html', appointments=appointments)
+
+@app.route('/create_appointment', methods=['POST'])
+def create_appointment():
+    patient_name = request.form['patient_name']
+    doctor_name = request.form['doctor_name']
+    appointment_date = request.form['appointment_date']
+
+    conn = get_db_connection()
+#no input validation or sanitization - vulnerability 5: SQL injection possible  
+    conn.execute('INSERT INTO appointments (patient_name, doctor_name, appointment_date) VALUES (?, ?, ?)',
+                 (patient_name, doctor_name, appointment_date))
+    conn.commit()
+    return redirect('/appointments')
+
+    #deleting appointments
+@app.route('/delete_appointment/<int:id>')
+def delete_appointment(id):
+    conn = get_db_connection()
+    #vulnerability 5: SQL injection possible
+    conn.execute('DELETE FROM appointments WHERE id = ?', (id,))
+    conn.commit()
+
+    return redirect('/appointments')
 
 
 if __name__ == '__main__':
