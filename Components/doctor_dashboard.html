@@ -43,15 +43,25 @@
     </style>
 </head>
 <body>
-    <header>
+{% extends "base.html" %}
+
+{% block content %}
+
         <h1>Doctor Dashboard</h1>
-    </header>
+    
     
     <div class="container">
         <div class="dashboard-grid">
             <div class="card">
                 <h3>Upcoming Appointments</h3>
+             {% for appointment in appointments %}   
                 <p>View and manage your scheduled appointments</p>
+                <p>
+                    patient: {{ appointment.patient_name }} <br>
+                    date: {{ appointment.appointment_date }}
+                </p>
+                <hr>
+             {% endfor %}
             </div>
             <div class="card">
                 <h3>Patient Records</h3>
@@ -62,6 +72,7 @@
                 <p>Communicate with your patients</p>
             </div>
         </div>
+        {% endblock %}
     </div>
 </body>
 </html>

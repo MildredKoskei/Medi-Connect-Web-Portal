@@ -50,17 +50,26 @@
     </style>
 </head>
 <body>
+    {% extends "base.html" %}
+
+    {% block content %}
     <h2>Appointments</h2>
 
     <form action="/create_appointment" method="post">
         <label for="patient">Patient Name:</label>
-        <input type="text" id="patient" name="patient" required>
+        <input type="text"  name="patient_name" required>
 
         <label for="doctor">Doctor Name:</label>
-        <input type="text" id="doctor" name="doctor" required>
+        <select name="doctor_name">
+<option value="Dr Nick Wilde">Dr Nick Wilde</option>
+<option value="Dr Judy Hopps">Dr Judy Hopps</option>
+<option value="Dr Finnick">Dr Finnick</option>
+<option value="Dr Gazelle">Dr Gazelle</option>
+
+</select>
 
         <label for="date">Date:</label>
-        <input type="datetime-local" id="date" name="date" required>
+        <input type="datetime-local"  name="appointment_date" required>
 
         <button type="submit">Create Appointment</button>
     </form>
@@ -72,10 +81,14 @@
         <div class="appointment-item">
             <p>
                 {{ appointment.patient_name }} with {{ appointment.doctor_name }} on {{ appointment.appointment_date }}
-                <a href="/edit/{{ appointment.id }}">Edit</a> |
-                <a href="/delete/{{ appointment.id }}">Delete</a>
+                <a href="/edit_appointment/{{ appointment.id }}">Edit</a> |
+                <a href="/delete_appointment/{{ appointment.id }}">Delete</a>
             </p>
         </div>
     {% endfor %}
+    {% endblock %}
+    <a href="/patient">
+<button type="button">Back to Dashboard</button>
+</a>
 </body>
 </html>

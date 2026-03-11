@@ -50,6 +50,9 @@
 </head>
 <body>
     <div class="container">
+        {% extends "base.html" %}
+
+{% block content %}
         <header>
             <h2>Patient Dashboard</h2>
         </header>
@@ -71,6 +74,7 @@
                 <p>View active prescriptions</p>
             </div>
         </div>
+        {% endblock %}
     </div>
 </body>
 </html>
