@@ -1,7 +1,8 @@
 print("app starting")
-from flask import Flask, render_template, request, redirect 
+from flask import Flask, render_template, request, redirect, session 
 import sqlite3
 app = Flask(__name__, template_folder='Components')
+app.secret_key = 'medi-connect-secret-key'  # Replace with a real secret key
 
 #connection to the db
 def get_db_connection():
@@ -47,6 +48,9 @@ def login_post():
         ).fetchone()
 #vulnerability 2: weak authentication - brute force attack possible - no account lockout mechanism
         if user:
+            session['username'] = user['username']
+            session['role'] = user['role']
+
             if user['role'] == 'admin':
                 return redirect('/admin')
             elif user['role'] == 'doctor':
@@ -61,11 +65,15 @@ def login_post():
 
 @app.route('/patient')
 def patient_dashboard():
+    if session.get('role') != 'patient':
+        return "Unauthorized access", 403  
     #anyon e can access this page without authentication - vulnerability 4: unauthorized access
     return render_template('patient_dashboard.html')
 #doctors landing page
 @app.route('/doctor')
 def doctor_dashboard():
+    if session.get('role') != 'doctor':
+        return "Unauthorized access", 403
     #anyon e can access this page without authentication - vulnerability 4: unauthorized access
     conn = get_db_connection()
     appointments = conn.execute('SELECT * FROM appointments').fetchall()
@@ -75,6 +83,8 @@ def doctor_dashboard():
 #admin landing page
 @app.route('/admin')
 def admin_dashboard():
+    if session.get('role') != 'admin':
+        return "Unauthorized access", 403
     #anyon e can access this page without authentication - vulnerability 4: unauthorized access
     return render_template('admin_dashboard.html')
 
@@ -130,6 +140,10 @@ def update_appointment(id):
     conn.commit()
 
     return redirect('/appointments')
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
 
 
 if __name__ == '__main__':
