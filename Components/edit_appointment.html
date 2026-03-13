@@ -43,14 +43,12 @@
 <body>
     <h2>Edit Appointment</h2>
     <form action="/update_appointment/{{appointment.id}}" method="post">
-        <label for="patient_name">Patient Name</label>
-        <input type="text" id="patient_name" name="patient_name" value="{{appointment.patient_name}}" required>
-
+       
         <label for="doctor_name">Doctor Name</label>
         <input type="text" id="doctor_name" name="doctor_name" value="{{appointment.doctor_name}}" required>
 
         <label for="appointment_date">Date</label>
-        <input type="date" id="appointment_date" name="appointment_date" value="{{appointment.appointment_date}}" required>
+        <input type="datetime-local" id="appointment_date" name="appointment_date" value="{{appointment.appointment_date}}" required>
 
         <button type="submit">Update Appointment</button>
     </form>

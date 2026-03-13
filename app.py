@@ -76,7 +76,7 @@ def doctor_dashboard():
         return "Unauthorized access", 403
     #anyon e can access this page without authentication - vulnerability 4: unauthorized access
     conn = get_db_connection()
-    appointments = conn.execute('SELECT * FROM appointments').fetchall()
+    appointments = conn.execute('SELECT * FROM appointments WHERE doctor_name = ?', (session.get('username'),)).fetchall()
     conn.close()
     return render_template('doctor_dashboard.html', appointments=appointments)
 
@@ -92,12 +92,12 @@ def admin_dashboard():
 @app.route('/appointments')
 def view_appointments():
     conn = get_db_connection()
-    appointments = conn.execute('SELECT * FROM appointments').fetchall()
+    appointments = conn.execute('SELECT * FROM appointments WHERE patient_name = ?', (session.get('username'),)).fetchall()
     return render_template('appointments.html', appointments=appointments)
 
 @app.route('/create_appointment', methods=['POST'])
 def create_appointment():
-    patient_name = request.form.get('patient_name')
+    patient_name = session.get('username')  # Assuming the patient is logged in and their username is stored in the session
     doctor_name = request.form.get('doctor_name')
     appointment_date = request.form.get('appointment_date')
 
