@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS users(
     role TEXT
 )
 """)
-
+cursor.execute("ALTER TABLE appointments ADD COLUMN status TEXT DEFAULT 'pending'")
 conn.commit()
 conn.close()
-
+print("Status column added to appointments table")
 print("Database created successfully")

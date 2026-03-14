@@ -78,7 +78,7 @@
     {% for appointment in appointments %}
         <div class="appointment-item">
             <p>
-                {{ appointment.patient_name }} with {{ appointment.doctor_name }} on {{ appointment.appointment_date }}
+                {{ appointment.patient_name }} with {{ appointment.doctor_name }} on {{ appointment.appointment_date }} Status: {{ appointment.status }}
                 <a href="/edit_appointment/{{ appointment.id }}">Edit</a> |
                 <a href="/delete_appointment/{{ appointment.id }}">Delete</a>
             </p>

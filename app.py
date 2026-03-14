@@ -79,7 +79,28 @@ def doctor_dashboard():
     appointments = conn.execute('SELECT * FROM appointments WHERE doctor_name = ?', (session.get('username'),)).fetchall()
     conn.close()
     return render_template('doctor_dashboard.html', appointments=appointments)
-
+#approving appointments
+@app.route('/approve/<int:id>')
+def approve_appointment(id):
+    if session.get('role') != 'doctor':
+        return "Unauthorized access", 403
+    conn = get_db_connection()
+    #vulnerability 5: SQL injection possible
+    conn.execute('UPDATE appointments SET status = ? WHERE id = ?', ('approved', id))
+    conn.commit()
+    conn.close()
+    return redirect('/doctor')
+#rejecting appointments
+@app.route('/reject/<int:id>')
+def reject_appointment(id):
+    if session.get('role') != 'doctor':
+        return "Unauthorized access", 403
+    conn = get_db_connection()
+    #vulnerability 5: SQL injection possible
+    conn.execute('UPDATE appointments SET status = ? WHERE id = ?', ('rejected', id))
+    conn.commit()
+    conn.close()
+    return redirect('/doctor')
 #admin landing page
 @app.route('/admin')
 def admin_dashboard():
@@ -88,6 +109,40 @@ def admin_dashboard():
     #anyon e can access this page without authentication - vulnerability 4: unauthorized access
     return render_template('admin_dashboard.html')
 
+@app.route('/admin/users')
+def view_users():
+    if session.get('role') != 'admin':
+        return "Unauthorized access", 403
+    conn = get_db_connection()
+    users = conn.execute('SELECT id, username, role FROM users').fetchall()
+    conn.close()
+    return render_template('view_users.html', users=users)
+#deleting users
+@app.route('/admin/delete_user/<int:id>')
+def delete_user(id):
+    if session.get('role') != 'admin':
+        return "Unauthorized access", 403
+    conn = get_db_connection()
+    #vulnerability 5: SQL injection possible
+    conn.execute('DELETE FROM users WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    return redirect('/admin/users')
+#adding a doctor
+@app.route('/admin/add_doctor', methods=['GET', 'POST'])
+def add_doctor():
+    if session.get('role') != 'admin':
+        return "Unauthorized access", 403
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+      
+        conn = get_db_connection()
+        conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', (username, password, 'doctor'))
+        conn.commit()
+        conn.close()
+        return redirect('/admin/users')
+    return render_template('add_doctor.html')
 #appointments page
 @app.route('/appointments')
 def view_appointments():

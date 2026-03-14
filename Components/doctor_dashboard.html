@@ -40,6 +40,9 @@
             color: #2c3e50;
             margin-bottom: 10px;
         }
+       
+        
+
     </style>
 </head>
 <body>
@@ -60,6 +63,8 @@
                     patient: {{ appointment.patient_name }} <br>
                     date: {{ appointment.appointment_date }}
                 </p>
+                <a href="/approve/{{ appointment.id }}">Approve</a> |
+                <a href="/reject/{{ appointment.id }}">Reject</a>
                 <hr>
              {% endfor %}
             </div>
