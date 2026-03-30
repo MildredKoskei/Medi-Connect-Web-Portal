@@ -1,83 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-        }
-        header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .card h3 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-       
-        
-
-    </style>
-</head>
-<body>
 {% extends "base.html" %}
 
 {% block content %}
+    <style>
+        
+       body {
+    background: #f4f7fb;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+      /* Header */
+.dashboard-header {
+    background: linear-gradient(135deg, #6a5acd, #1e90ff);
+    color: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
 
-        <h1>Doctor Dashboard</h1>
-    
-    
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+/* Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+/* Cards */
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+/* Titles */
+.card h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+/* Text */
+.card p {
+    color: #555;
+    margin-bottom: 10px;
+}
+
+/* Appointment box */
+.appointment {
+    background: #f8f9ff;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid #1e90ff;
+}
+
+/* Buttons */
+.action-btn {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    margin-right: 5px;
+}
+
+.approve {
+    background: #28a745;
+    color: white;
+}
+
+.reject {
+    background: #dc3545;
+    color: white;
+}
+
+.approve:hover {
+    background: #218838;
+}
+
+.reject:hover {
+    background: #c82333;
+}
+
+/* Icons */
+.icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+    </style>
+     
     <div class="container">
+        <div class="dashboard-header">
+            <h2>🩺 Doctor Dashboard</h2>
+            <p>Manage your appointments and patients</p>
+        </div>
+
         <div class="dashboard-grid">
+
+            <!-- Appointments -->
             <div class="card">
-                <h3>Upcoming Appointments</h3>
-             {% for appointment in appointments %}   
-                <p>View and manage your scheduled appointments</p>
-                <p>
-                    patient: {{ appointment.patient_name }} <br>
-                    date: {{ appointment.appointment_date }}
-                </p>
-                <a href="/approve/{{ appointment.id }}">Approve</a> |
-                <a href="/reject/{{ appointment.id }}">Reject</a>
-                <hr>
-             {% endfor %}
+                <div class="icon">📅</div>
+            <h3>Upcoming Appointments</h3>
+
+            {% for appointment in appointments %}
+
+            <div class="appointment">
+                <p><strong>Patient:</strong> {{ appointment.patient_name }}</p>
+                <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+
+                <a class="action-btn approve" href="/approve/{{ appointment.id }}">Approve</a>
+                <a class="action-btn reject" href="/reject/{{ appointment.id }}">Reject</a>
             </div>
+
+            {% endfor %}
+            </div>
+            <!-- Patient Records -->
             <div class="card">
+                <div class="icon">📋</div>
                 <h3>Patient Records</h3>
                 <p>Access patient medical history and records</p>
             </div>
             <div class="card">
+                <div class="icon">💬</div>
                 <h3>Messages</h3>
                 <p>Communicate with your patients</p>
             </div>
         </div>
-        {% endblock %}
+
     </div>
-</body>
-</html>
+    {% endblock %}

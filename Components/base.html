@@ -12,42 +12,38 @@
         }
 
         .navbar{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding:15px;
+             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding:25px 35px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
         }
-
-        .navbar a{
+        .nav-left a{
             color:white;
             text-decoration:none;
             margin-right:20px;
             font-weight:bold;
         }
 
-        .navbar a:hover{
+        .nav-left a:hover{
             text-decoration:underline;
+        }
+
+        .nav-right{
+            color:white;
+            font-weight:bold;
+        }
+
+        .nav-right a{
+            color:white;
+            text-decoration:none;
+            margin-left:15px;
         }
 
         .container{
             width:80%;
             margin:auto;
             margin-top:40px;
-        }
-
-        h2{
-            color:#333;
-        }
-
-        button{
-            background:#0066cc;
-            color:white;
-            border:none;
-            padding:10px 15px;
-            border-radius:4px;
-            cursor:pointer;
-        }
-
-        button:hover{
-            background:#004c99;
         }
 
     </style>
@@ -57,19 +53,36 @@
 <body>
 
 <div class="navbar">
+    <div class="nav-left">
+         {% if session.get('role') == 'patient' %}
+            <a href="/patient">Dashboard</a>
+            <a href="/appointments">Appointments</a>
+        {% endif %}
 
-    <a href="/patient">Dashboard</a>
-    <a href="/appointments">Appointments</a>
-    <a href="/doctor">Doctor Panel</a>
-    <a href="/admin">Admin Panel</a>
-    <a href="/logout">Logout</a>
+        {% if session.get('role') == 'doctor' %}
+            <a href="/doctor">Dashboard</a>
+        {% endif %}
+
+        {% if session.get('role') == 'admin' %}
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/users">Manage Users</a>
+        {% endif %}
+    </div>
+    <div class="nav-right">
+        {% if session.get('username') %}
+            Welcome, {{ session.get('username') }}!
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
 
 </div>
+</div>
+
 
 <div class="container">
 
 {% block content %}
-
 {% endblock %}
 
 </div>
