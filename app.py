@@ -195,6 +195,76 @@ def update_appointment(id):
     conn.commit()
 
     return redirect('/appointments')
+@app.route('/doctor/patients')
+def view_patients():
+    if session.get('role') != 'doctor':
+        return "Unauthorized access", 403
+    conn = get_db_connection()
+    search_query = request.args.get('search', '')
+    if search_query:
+        patients = conn.execute('SELECT DISTINCT patient_name FROM appointments WHERE doctor_name = ? AND patient_name LIKE ?',
+                                (session.get('username'), f'%{search_query}%')).fetchall()
+    else:
+        patients = conn.execute('SELECT DISTINCT patient_name FROM appointments WHERE doctor_name = ?', (session.get('username'),)).fetchall()
+    conn.close()
+    return render_template('view_patients.html', patients=patients)
+
+@app.route('/doctor/patient/<username>')
+def view_patient_records(username):
+    conn = get_db_connection()
+    messages = conn.execute('SELECT * FROM messages WHERE sender = ? OR receiver = ?',
+                            (session['username'],username, username, session['username'])
+                            ).fetchall()
+    conn.close()
+    return render_template('view_patients.html', messages=messages, patient=username)
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    sender = session.get('username')
+    receiver = request.form.get('receiver')
+    message = request.form.get('message')
+
+    conn = get_db_connection()
+    #vulnerability 5: SQL injection possible
+    conn.execute('INSERT INTO messages (sender, receiver, message) VALUES (?, ?, ?)',
+                 (sender, receiver, message))
+    conn.commit()
+    conn.close()
+    return redirect(request.referrer)
+
+@app.route('/add_prescription', methods=['POST'])
+def add_prescription():
+    doctor = session.get('username')
+    patient = request.form.get('patient')
+    prescription = request.form.get('prescription')
+
+    conn = get_db_connection()
+    #vulnerability 5: SQL injection possible
+    conn.execute('INSERT INTO prescriptions (doctor, patient, prescription) VALUES (?, ?, ?)',
+                 (doctor, patient, prescription))
+    conn.commit()
+    conn.close()
+    return redirect(request.referrer)
+
+@app.route('/patient/prescriptions')
+def patient_prescriptions():
+    if session.get('role') != 'patient':
+        return "Unauthorized access", 403
+    conn = get_db_connection()
+    prescriptions = conn.execute('SELECT * FROM prescriptions WHERE patient = ?', (session.get('username'),)).fetchall()
+    conn.close()
+    return render_template('patient_prescriptions.html', prescriptions=prescriptions)
+
+@app.route('/patient/messages')
+def patient_messages():
+    if session.get('role') != 'patient':
+        return "Unauthorized access", 403
+    conn = get_db_connection()
+    messages = conn.execute('SELECT * FROM messages WHERE sender = ? OR receiver = ?',
+                            (session['username'], session['username'])
+                            ).fetchall()
+    conn.close()
+    return render_template('patient_messages.html', messages=messages)
 @app.route('/logout')
 def logout():
     session.clear()
