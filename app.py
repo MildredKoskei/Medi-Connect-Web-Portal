@@ -1,7 +1,7 @@
 print("app starting")
 from flask import Flask, render_template, request, redirect, session 
 import sqlite3
-app = Flask(__name__, template_folder='Components')
+app = Flask(__name__, template_folder='templates')
 app.secret_key = 'medi-connect-secret-key'  # Replace with a real secret key
 
 #connection to the db
