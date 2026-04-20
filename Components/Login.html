@@ -79,6 +79,11 @@
 <body>
     <div class="login-container">
         <h2>MediConnect Login</h2>
+        {% if error %}
+            <div style="color: white; background-color: #f43f5e; padding: 10px; border-radius: 4px; margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: bold;">
+                {{ error }}
+            </div>
+        {% endif %}
         <form action="/login" method="post">
             <div class="form-group">
                 <label for="username">Username</label>

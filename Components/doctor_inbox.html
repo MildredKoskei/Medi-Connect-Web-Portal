@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2>📥 My Inbox</h2>
+    <p>Read and respond to patient messages.</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card" style="grid-column: span 2;">
+        {% if conversations %}
+            {% for patient, msgs in conversations.items() %}
+            <div style="margin-bottom: 2rem; background: var(--bg-body); border-radius: var(--radius-md); padding: 1.5rem; border: 1px solid var(--border-color);">
+                <h3>Conversation with: <a href="/doctor/patient/{{ patient }}" style="color: var(--primary); text-decoration: none;">{{ patient }}</a></h3>
+                
+                <div style="margin-top: 1rem; background: white; border-radius: var(--radius-md); padding: 1rem; height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; border: 1px solid var(--border-color);">
+                    {% for msg in msgs %}
+                        {% if msg.sender == session.get('username') %}
+                            <div style="align-self: flex-end; background: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: 1rem 1rem 0 1rem; max-width: 70%;">
+                                <strong>Me:</strong> {{ msg.message }}
+                            </div>
+                        {% else %}
+                            <div style="align-self: flex-start; background: #E2E8F0; color: var(--text-main); padding: 0.5rem 1rem; border-radius: 1rem 1rem 1rem 0; max-width: 70%;">
+                                <strong>{{ msg.sender }}:</strong> {{ msg.message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <form action="/send_message" method="post" style="margin-top: 1rem; display: flex; gap: 1rem;">
+                    <input type="hidden" name="receiver" value="{{ patient }}">
+                    <input type="text" name="message" placeholder="Reply to {{ patient }}..." required style="flex-grow: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                    <button type="submit" class="btn-action btn-primary">Reply</button>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+                <h3 style="color: var(--text-muted);">Inbox is empty</h3>
+                <p>You have no recent messages from patients.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="margin-top: 1rem;">
+    <a href="/doctor" class="btn-action">Back to Dashboard</a>
+</div>
+{% endblock %}

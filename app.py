@@ -63,7 +63,7 @@ def login_post():
             elif user['role'] == 'patient':
                 return redirect('/patient')
 
-        return "Login failed"
+        return render_template('login.html', error="Login unsuccessful. Please check your credentials.")
 
     # If it's a GET request, just show the login page
     return render_template('login.html')
@@ -262,18 +262,58 @@ def add_prescription():
     conn.close()
     return redirect(request.referrer)
 
-@app.route('/patient/health_hub')
-def patient_health_hub():
+@app.route('/patient/records')
+def patient_records():
+    if session.get('role') != 'patient':
+        return "Unauthorized access", 403
+    conn = get_db_connection()
+    username = session.get('username')
+    appointments = conn.execute('SELECT * FROM appointments WHERE patient_name = ?', (username,)).fetchall()
+    conn.close()
+    return render_template('patient_records.html', appointments=appointments)
+
+@app.route('/patient/prescriptions')
+def patient_prescriptions():
     if session.get('role') != 'patient':
         return "Unauthorized access", 403
     conn = get_db_connection()
     username = session.get('username')
     prescriptions = conn.execute('SELECT * FROM prescriptions WHERE patient = ?', (username,)).fetchall()
+    conn.close()
+    return render_template('patient_prescriptions.html', prescriptions=prescriptions)
+
+@app.route('/patient/messages')
+def patient_messages():
+    if session.get('role') != 'patient':
+        return "Unauthorized access", 403
+    conn = get_db_connection()
+    username = session.get('username')
     messages = conn.execute('SELECT * FROM messages WHERE sender = ? OR receiver = ?',
                             (username, username)).fetchall()
-    appointments = conn.execute('SELECT * FROM appointments WHERE patient_name = ?', (username,)).fetchall()
+    doctors = conn.execute('SELECT username FROM users WHERE role = "doctor"').fetchall()
     conn.close()
-    return render_template('patient_health_hub.html', prescriptions=prescriptions, messages=messages, appointments=appointments)
+    return render_template('patient_messages.html', messages=messages, doctors=doctors)
+@app.route('/doctor/inbox')
+def doctor_inbox():
+    if session.get('role') != 'doctor':
+        return "Unauthorized access", 403
+    conn = get_db_connection()
+    username = session.get('username')
+    raw_messages = conn.execute('''
+        SELECT * FROM messages 
+        WHERE sender = ? OR receiver = ?
+    ''', (username, username)).fetchall()
+    conn.close()
+    
+    conversations = {}
+    for msg in raw_messages:
+        other_party = msg['sender'] if msg['receiver'] == username else msg['receiver']
+        if other_party not in conversations:
+            conversations[other_party] = []
+        conversations[other_party].append(msg)
+        
+    return render_template('doctor_inbox.html', conversations=conversations)
+
 @app.route('/logout')
 def logout():
     session.clear()

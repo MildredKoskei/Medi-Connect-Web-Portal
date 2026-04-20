@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2>💬 Direct Messaging</h2>
+    <p>Communicate with your healthcare providers securely.</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card" style="grid-column: span 2;">
+        <div class="card-icon" style="background: rgba(244, 63, 94, 0.1); color: var(--accent);">💬</div>
+        <h3>Doctor Messaging Exchange</h3>
+        
+        <div style="margin-top: 1rem; background: var(--bg-body); border-radius: var(--radius-md); padding: 1rem; height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+            {% if messages %}
+                {% for msg in messages %}
+                    {% if msg.sender == session.get('username') %}
+                        <div style="align-self: flex-end; background: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: 1rem 1rem 0 1rem; max-width: 70%;">
+                            <strong>Me:</strong> {{ msg.message }}
+                        </div>
+                    {% else %}
+                        <div style="align-self: flex-start; background: #E2E8F0; color: var(--text-main); padding: 0.5rem 1rem; border-radius: 1rem 1rem 1rem 0; max-width: 70%;">
+                            <strong>Dr. {{ msg.sender }}:</strong> {{ msg.message }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-muted); text-align: center;">No message history.</p>
+            {% endif %}
+        </div>
+
+        <form action="/send_message" method="post" style="margin-top: 1rem; display: flex; gap: 1rem; flex-direction: column;">
+            <select name="receiver" required style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <option value="" disabled selected>Select a Doctor...</option>
+                {% for doctor in doctors %}
+                <option value="{{ doctor.username }}">Dr. {{ doctor.username }}</option>
+                {% endfor %}
+            </select>
+            <div style="display: flex; gap: 1rem;">
+                <input type="text" name="message" placeholder="Type a message..." required style="flex-grow: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <button type="submit" class="btn-action btn-primary">Send</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div style="margin-top: 1rem;">
+    <a href="/patient" class="btn-action">Back to Dashboard</a>
+</div>
+{% endblock %}

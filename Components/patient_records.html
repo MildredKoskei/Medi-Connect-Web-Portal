@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2>📋 My Medical Records</h2>
+    <p>Comprehensive overview of your medical history and appointments.</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card" style="grid-column: span 2;">
+        <div class="card-icon" style="background: rgba(14, 165, 233, 0.1); color: var(--secondary);">📋</div>
+        <h3>Past Appointments & Records</h3>
+        <div style="margin-top: 1rem; max-height: 400px; overflow-y: auto;">
+            {% if appointments %}
+                {% for appointment in appointments %}
+                <div style="padding: 1rem; border-bottom: 1px solid var(--border-color);">
+                    <strong>Dr. {{ appointment.doctor_name }}</strong><br>
+                    <small style="color: var(--text-muted);">{{ appointment.appointment_date }}</small><br>
+                    <span style="font-size: 0.85rem; color: var(--primary);">Status: {{ appointment.status }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-muted);">No records found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 1rem;">
+    <a href="/patient" class="btn-action">Back to Dashboard</a>
+</div>
+{% endblock %}
