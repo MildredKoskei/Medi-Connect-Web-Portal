@@ -277,6 +277,60 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Responsive Mobile UI Fixes */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+                gap: 1rem;
+            }
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+            .nav-left {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.75rem;
+            }
+            .nav-right {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                margin-top: 0.5rem;
+            }
+            .container {
+                padding: 1.5rem 1rem;
+            }
+            .dashboard-header {
+                margin-bottom: 1.5rem;
+            }
+            .dashboard-header h2 {
+                font-size: 1.75rem;
+                flex-wrap: wrap;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+            /* Override hardcoded column spans for mobile */
+            .card[style*="span 2"] {
+                grid-column: 1 / -1 !important;
+            }
+            .card {
+                padding: 1.5rem;
+            }
+            .card-icon {
+                font-size: 2rem;
+                width: 50px;
+                height: 50px;
+                margin-bottom: 1rem;
+            }
+            form[style*="display: flex"] {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+        }
     </style>
 </head>
 
