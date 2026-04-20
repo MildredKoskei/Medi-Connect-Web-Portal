@@ -24,6 +24,7 @@ def signup():
 
         conn = get_db_connection()
         #1st vulnerability: no password hashing
+
         conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
                      (username, password, "patient"))
         conn.commit()
@@ -41,11 +42,15 @@ def login_post():
         password = request.form.get('password')
 
         conn = get_db_connection()
+        
+
+
 #vulnerability 1: no password hashing - passwords stored in plaintext
         user = conn.execute(
             'SELECT * FROM users WHERE username = ? AND password = ?',
             (username, password)
         ).fetchone()
+        
 #vulnerability 2: weak authentication - brute force attack possible - no account lockout mechanism
         if user:
             session['username'] = user['username']
@@ -211,12 +216,21 @@ def view_patients():
 
 @app.route('/doctor/patient/<username>')
 def view_patient_records(username):
+    if session.get('role') != 'doctor':
+        return "Unauthorized access", 403
     conn = get_db_connection()
-    messages = conn.execute('SELECT * FROM messages WHERE sender = ? OR receiver = ?',
-                            (session['username'],username, username, session['username'])
+    messages = conn.execute('SELECT * FROM messages WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)',
+                            (session['username'], username, username, session['username'])
                             ).fetchall()
+    
+    appointments = conn.execute('SELECT * FROM appointments WHERE patient_name = ? AND doctor_name = ?', 
+                                (username, session['username'])).fetchall()
+                                
+    prescriptions = conn.execute('SELECT * FROM prescriptions WHERE patient = ?', 
+                                 (username,)).fetchall()
+                                 
     conn.close()
-    return render_template('view_patients.html', messages=messages, patient=username)
+    return render_template('patient_details.html', messages=messages, patient_name=username, appointments=appointments, prescriptions=prescriptions)
 
 @app.route('/send_message', methods=['POST'])
 def send_message():
@@ -234,37 +248,32 @@ def send_message():
 
 @app.route('/add_prescription', methods=['POST'])
 def add_prescription():
+    if session.get('role') != 'doctor':
+        return "Unauthorized access", 403
     doctor = session.get('username')
     patient = request.form.get('patient')
-    prescription = request.form.get('prescription')
+    medication = request.form.get('medication')
+    notes = request.form.get('notes')
 
     conn = get_db_connection()
-    #vulnerability 5: SQL injection possible
-    conn.execute('INSERT INTO prescriptions (doctor, patient, prescription) VALUES (?, ?, ?)',
-                 (doctor, patient, prescription))
+    conn.execute('INSERT INTO prescriptions (doctor, patient, medication, notes) VALUES (?, ?, ?, ?)',
+                 (doctor, patient, medication, notes))
     conn.commit()
     conn.close()
     return redirect(request.referrer)
 
-@app.route('/patient/prescriptions')
-def patient_prescriptions():
+@app.route('/patient/health_hub')
+def patient_health_hub():
     if session.get('role') != 'patient':
         return "Unauthorized access", 403
     conn = get_db_connection()
-    prescriptions = conn.execute('SELECT * FROM prescriptions WHERE patient = ?', (session.get('username'),)).fetchall()
-    conn.close()
-    return render_template('patient_prescriptions.html', prescriptions=prescriptions)
-
-@app.route('/patient/messages')
-def patient_messages():
-    if session.get('role') != 'patient':
-        return "Unauthorized access", 403
-    conn = get_db_connection()
+    username = session.get('username')
+    prescriptions = conn.execute('SELECT * FROM prescriptions WHERE patient = ?', (username,)).fetchall()
     messages = conn.execute('SELECT * FROM messages WHERE sender = ? OR receiver = ?',
-                            (session['username'], session['username'])
-                            ).fetchall()
+                            (username, username)).fetchall()
+    appointments = conn.execute('SELECT * FROM appointments WHERE patient_name = ?', (username,)).fetchall()
     conn.close()
-    return render_template('patient_messages.html', messages=messages)
+    return render_template('patient_health_hub.html', prescriptions=prescriptions, messages=messages, appointments=appointments)
 @app.route('/logout')
 def logout():
     session.clear()

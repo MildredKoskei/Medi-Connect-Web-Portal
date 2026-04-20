@@ -1,41 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Medi-Connect</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .welcome-section {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h2 {
-            color: #333;
-            font-size: 28px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <section class="welcome-section">
-            <h2>Welcome {{user}}</h2>
-        </section>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header" style="text-align: center; margin-top: 2rem;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">👋</div>
+    <h2>Welcome to Medi-Connect, {{ session.get('username', 'Guest') }}</h2>
+    <p>We are glad to have you here. Please navigate using the menu above.</p>
+</div>
+
+<div style="display: flex; justify-content: center; margin-top: 3rem;">
+    <div class="card" style="max-width: 600px; text-align: center; border-top: 4px solid var(--primary);">
+        <h3 style="margin-bottom: 1rem;">Quick Actions</h3>
+        <p style="margin-bottom: 2rem;">Select an action below to get started with managing your profile.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="/" class="btn-action">Return Home</a>
+            <a href="/logout" class="btn-action btn-primary">Sign Out</a>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

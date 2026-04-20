@@ -1,138 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
-        
-        .sidebar {
-            width: 250px;
-            background-color: #1a3a52;
-            color: white;
-            padding: 20px;
-        }
-        
-        .sidebar h3 {
-            margin-bottom: 20px;
-        }
-        
-        .sidebar ul {
-            list-style: none;
-        }
-        
-        .sidebar li {
-            margin: 15px 0;
-        }
-        
-        .sidebar a {
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-            display: block;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-        
-        .sidebar a:hover {
-            background-color: #2d5a7b;
-        }
-        
-        .main-content {
-            flex: 1;
-            padding: 30px;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .card {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .card h4 {
-            color: #1a3a52;
-            margin-bottom: 10px;
-        }
-        
-        .card-value {
-            font-size: 28px;
-            font-weight: bold;
-            color: #2d5a7b;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <aside class="sidebar">
-            <h3>Medi-Connect</h3>
-            <ul>
-                <li><a href="#dashboard">Dashboard</a></li>
-                <li><a href="/admin/users">Manage Users</a></li>
-                <li><a href="/appointments">Appointments</a></li>
-                <li><a href="#reports">Reports</a></li>
-                <li><a href="/logout">Logout</a></li>
-            </ul>
-        </aside>
-        
-        <main class="main-content">
-            <div class="header">
-                <h2>Admin Dashboard</h2>
-                <span>Welcome, Admin</span>
-            </div>
-            
-            <div class="dashboard-grid">
-                <div class="card">
-                    <h4>Total Users</h4>
-                    <div class="card-value">1,234</div>
-                </div>
-                <div class="card">
-                    <h4>Appointments</h4>
-                    <div class="card-value">567</div>
-                </div>
-                <div class="card">
-                    <h4>Doctors</h4>
-                    <div class="card-value">89</div>
-                </div>
-                <div class="card">
-                    <h4>Patients</h4>
-                    <div class="card-value">1,145</div>
-                </div>
-            </div>
-        </main>
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Specific styles for Admin Stat Cards */
+    .stat-value {
+        font-family: 'Outfit', sans-serif;
+        font-size: 3rem;
+        font-weight: 800;
+        background: var(--gradient-brand);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-top: auto;
+    }
+</style>
+
+<div class="dashboard-header">
+    <h2>👑 Admin Dashboard</h2>
+    <p>Platform overview and administrative controls.</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card" style="align-items: center; text-align: center;">
+        <div class="card-icon" style="background: rgba(79, 70, 229, 0.1);">👥</div>
+        <h3>Total Users</h3>
+        <p>Across the platform</p>
+        <div class="stat-value">1,234</div>
     </div>
-</body>
-</html>
+
+    <div class="card" style="align-items: center; text-align: center;">
+        <div class="card-icon" style="background: rgba(14, 165, 233, 0.1); color: var(--secondary);">📅</div>
+        <h3>Appointments</h3>
+        <p>Scheduled and completed</p>
+        <div class="stat-value">567</div>
+    </div>
+
+    <div class="card" style="align-items: center; text-align: center;">
+        <div class="card-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">🩺</div>
+        <h3>Doctors</h3>
+        <p>Registered medical staff</p>
+        <div class="stat-value">89</div>
+    </div>
+
+    <div class="card" style="align-items: center; text-align: center;">
+        <div class="card-icon" style="background: rgba(244, 63, 94, 0.1); color: var(--accent);">👤</div>
+        <h3>Patients</h3>
+        <p>Registered patients</p>
+        <div class="stat-value">1,145</div>
+    </div>
+    
+    <div class="card" style="grid-column: span 1 / -1; display:flex; flex-direction:row; align-items:center; justify-content:space-between; padding: 2rem;">
+        <div>
+            <h3 style="margin-bottom: 0.25rem;">Manage Users</h3>
+            <p style="margin-bottom: 0;">Add, modify, or remove user accounts.</p>
+        </div>
+        <a href="/admin/users" class="btn-action btn-primary" style="padding: 0.75rem 2rem;">Go to Users</a>
+    </div>
+</div>
+{% endblock %}

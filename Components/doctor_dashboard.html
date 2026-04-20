@@ -1,144 +1,97 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <style>
-        
-       body {
-    background: #f4f7fb;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-      /* Header */
-.dashboard-header {
-    background: linear-gradient(135deg, #6a5acd, #1e90ff);
-    color: white;
-    padding: 25px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-}
+<style>
+    /* Specific styles for Doctor Dashboard */
+    .appointment-item {
+        background: var(--bg-body);
+        padding: 1.25rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary);
+    }
+    
+    .appointment-item p {
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+    }
+    
+    .appointment-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 1rem;
+    }
 
-/* Container */
-.container {
-    max-width: 1200px;
-    margin: auto;
-    padding: 20px;
-}
+    .btn-approve {
+        background: #10B981; /* Emerald */
+        color: white;
+        border: none;
+    }
+    .btn-approve:hover {
+        background: #059669;
+        color: white;
+    }
 
-/* Grid */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
-}
+    .btn-reject {
+        background: var(--accent);
+        color: white;
+        border: none;
+    }
+    .btn-reject:hover {
+        background: #E11D48;
+        color: white;
+    }
+</style>
 
-/* Cards */
-.card {
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    transition: all 0.3s ease;
-}
+<div class="dashboard-header">
+    <h2>🩺 Doctor Dashboard</h2>
+    <p>Manage your appointments and patients efficiently.</p>
+</div>
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-}
+<div class="dashboard-grid">
+    <!-- Appointments -->
+    <div class="card" style="grid-column: span 2;">
+        <div class="card-icon">📅</div>
+        <h3>Upcoming Appointments</h3>
+        <p style="margin-bottom: 1rem">Review and manage your pending patient requests.</p>
 
-/* Titles */
-.card h3 {
-    margin-bottom: 10px;
-    color: #2c3e50;
-}
-
-/* Text */
-.card p {
-    color: #555;
-    margin-bottom: 10px;
-}
-
-/* Appointment box */
-.appointment {
-    background: #f8f9ff;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    border-left: 4px solid #1e90ff;
-}
-
-/* Buttons */
-.action-btn {
-    display: inline-block;
-    padding: 6px 10px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 13px;
-    margin-right: 5px;
-}
-
-.approve {
-    background: #28a745;
-    color: white;
-}
-
-.reject {
-    background: #dc3545;
-    color: white;
-}
-
-.approve:hover {
-    background: #218838;
-}
-
-.reject:hover {
-    background: #c82333;
-}
-
-/* Icons */
-.icon {
-    font-size: 28px;
-    margin-bottom: 10px;
-}
-
-    </style>
-     
-    <div class="container">
-        <div class="dashboard-header">
-            <h2>🩺 Doctor Dashboard</h2>
-            <p>Manage your appointments and patients</p>
-        </div>
-
-        <div class="dashboard-grid">
-
-            <!-- Appointments -->
-            <div class="card">
-                <div class="icon">📅</div>
-            <h3>Upcoming Appointments</h3>
-
+        {% if appointments %}
             {% for appointment in appointments %}
-
-            <div class="appointment">
-                <p><strong>Patient:</strong> {{ appointment.patient_name }}</p>
+            <div class="appointment-item">
+                <p><strong>Patient:</strong> <a href="/doctor/patient/{{ appointment.patient_name }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">{{ appointment.patient_name }}</a></p>
                 <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
-
-                <a class="action-btn approve" href="/approve/{{ appointment.id }}">Approve</a>
-                <a class="action-btn reject" href="/reject/{{ appointment.id }}">Reject</a>
+                <div class="appointment-actions">
+                    <a class="btn-action btn-approve" href="/approve/{{ appointment.id }}">Approve</a>
+                    <a class="btn-action btn-reject" href="/reject/{{ appointment.id }}">Reject</a>
+                </div>
             </div>
-
             {% endfor %}
+        {% else %}
+            <div class="appointment-item" style="border-left-color: var(--text-muted);">
+                <p>No upcoming appointments found.</p>
             </div>
-            <!-- Patient Records -->
-            <div class="card">
-                <div class="icon">📋</div>
-                <h3>Patient Records</h3>
-                <p>Access patient medical history and records</p>
-            </div>
-            <div class="card">
-                <div class="icon">💬</div>
-                <h3>Messages</h3>
-                <p>Communicate with your patients</p>
+        {% endif %}
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap: 1.75rem;">
+        <!-- Patient Records -->
+        <div class="card">
+            <div class="card-icon">📋</div>
+            <h3>Patient Records</h3>
+            <p>Access patient medical history and records.</p>
+            <div style="margin-top:auto">
+                <a href="/doctor/patients" class="btn-action">Search Records</a>
             </div>
         </div>
 
+        <div class="card">
+            <div class="card-icon">💬</div>
+            <h3>Messages</h3>
+            <p>Communicate with your patients securely.</p>
+            <div style="margin-top:auto">
+                <a href="#" class="btn-action">Open Inbox</a>
+            </div>
+        </div>
     </div>
-    {% endblock %}
+</div>
+{% endblock %}

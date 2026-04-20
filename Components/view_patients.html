@@ -1,19 +1,36 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="dashboard-header">
+    <h2>🔍 Patient Directory</h2>
+    <p>Search and access your patients' medical profiles.</p>
+</div>
 
-<h2>Patients</h2>
+<div class="card" style="margin-bottom: 2rem;">
+    <form method="get" style="display: flex; gap: 1rem; align-items: center;">
+        <input type="text" name="search" placeholder="Search patient by name..." 
+               style="flex-grow: 1; padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 1rem;" 
+               value="{{ request.args.get('search', '') }}">
+        <button type="submit" class="btn-action btn-primary" style="padding: 0.75rem 2rem;">Search</button>
+    </form>
+</div>
 
-<form method="get">
-    <input type="text" name="search" placeholder="Search patient">
-    <button type="submit">Search</button>
-</form>
-
-{% for patient in patients %}
-    <p>
-        {{ patient.username }}
-        <a href="/doctor/patient/{{ patient.username }}">View</a>
-    </p>
-{% endfor %}
+<div class="dashboard-grid">
+    {% if patients %}
+        {% for patient in patients %}
+        <div class="card" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+            <div class="card-icon" style="background: rgba(79, 70, 229, 0.1); color: var(--primary); border-radius: 50%;">👤</div>
+            <h3>{{ patient.patient_name }}</h3>
+            <p style="margin-bottom: 1.5rem;">Patient</p>
+            <a class="btn-action" href="/doctor/patient/{{ patient.patient_name }}" style="width: 100%;">View Profile</a>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card" style="grid-column: 1 / -1; text-align: center;">
+            <h3 style="color: var(--text-muted);">No patients found</h3>
+            <p>Try adjusting your search criteria.</p>
+        </div>
+    {% endif %}
+</div>
 
 {% endblock %}

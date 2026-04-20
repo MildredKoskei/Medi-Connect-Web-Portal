@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2>👤 Patient Profile: {{ patient_name }}</h2>
+    <p>Comprehensive overview of medical history, prescriptions, and direct messaging.</p>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Medical Records (Past Appointments) -->
+    <div class="card" style="grid-column: span 1;">
+        <div class="card-icon" style="background: rgba(14, 165, 233, 0.1); color: var(--secondary);">📋</div>
+        <h3>Medical Records (Appointments)</h3>
+        <div style="margin-top: 1rem; max-height: 300px; overflow-y: auto;">
+            {% if appointments %}
+                {% for appointment in appointments %}
+                <div style="padding: 1rem; border-bottom: 1px solid var(--border-color);">
+                    <strong>Dr. {{ appointment.doctor_name }}</strong><br>
+                    <small style="color: var(--text-muted);">{{ appointment.appointment_date }}</small><br>
+                    <span style="font-size: 0.85rem; color: var(--primary);">Status: {{ appointment.status }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-muted);">No records found.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Prescriptions -->
+    <div class="card" style="grid-column: span 1;">
+        <div class="card-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">💊</div>
+        <h3>Prescriptions Given</h3>
+        <div style="margin-top: 1rem; max-height: 200px; overflow-y: auto;">
+            {% if prescriptions %}
+                {% for rx in prescriptions %}
+                <div style="padding: 1rem; border-bottom: 1px solid var(--border-color);">
+                    <strong>{{ rx.medication }}</strong><br>
+                    <small style="color: var(--text-muted);">Prescribed by Dr. {{ rx.doctor }}</small><br>
+                    <p style="font-size: 0.9rem; margin-top: 0.25rem;">{{ rx.notes }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-muted);">No prescriptions found.</p>
+            {% endif %}
+        </div>
+        
+        <form action="/add_prescription" method="post" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <input type="hidden" name="patient" value="{{ patient_name }}">
+            <input type="text" name="medication" placeholder="Medication Name" required style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <input type="text" name="notes" placeholder="Dosage / Notes" required style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <button type="submit" class="btn-action btn-primary">Add Prescription</button>
+        </form>
+    </div>
+
+    <!-- Direct Messaging -->
+    <div class="card" style="grid-column: span 2;">
+        <div class="card-icon" style="background: rgba(244, 63, 94, 0.1); color: var(--accent);">💬</div>
+        <h3>Direct Messaging</h3>
+        
+        <div style="margin-top: 1rem; background: var(--bg-body); border-radius: var(--radius-md); padding: 1rem; height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+            {% if messages %}
+                {% for msg in messages %}
+                    {% if msg.sender == session.get('username') %}
+                        <div style="align-self: flex-end; background: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: 1rem 1rem 0 1rem; max-width: 70%;">
+                            <strong>Me:</strong> {{ msg.message }}
+                        </div>
+                    {% else %}
+                        <div style="align-self: flex-start; background: #E2E8F0; color: var(--text-main); padding: 0.5rem 1rem; border-radius: 1rem 1rem 1rem 0; max-width: 70%;">
+                            <strong>{{ msg.sender }}:</strong> {{ msg.message }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-muted); text-align: center;">No message history.</p>
+            {% endif %}
+        </div>
+
+        <form action="/send_message" method="post" style="margin-top: 1rem; display: flex; gap: 1rem;">
+            <input type="hidden" name="receiver" value="{{ patient_name }}">
+            <input type="text" name="message" placeholder="Type a message..." required style="flex-grow: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <button type="submit" class="btn-action btn-primary">Send</button>
+        </form>
+    </div>
+</div>
+
+<div style="margin-top: 1rem;">
+    <a href="/doctor/patients" class="btn-action">Back to Patient Directory</a>
+</div>
+{% endblock %}

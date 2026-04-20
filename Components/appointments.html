@@ -1,92 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointments - Medi-Connect</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-        }
-        form {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-        input {
-            padding: 8px;
-            margin: 10px 0;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-        .appointment-item {
-            padding: 10px;
-            border-left: 4px solid #007bff;
-            margin: 10px 0;
-            background: #f9f9f9;
-        }
-        a {
-            color: #dc3545;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    {% extends "base.html" %}
+{% extends "base.html" %}
 
-    {% block content %}
-    <h2>Appointments</h2>
+{% block content %}
+<div class="dashboard-header">
+    <h2>📅 Appointments</h2>
+    <p>Schedule a new visit or review your upcoming sessions.</p>
+</div>
 
-    <form action="/create_appointment" method="post">
+<div class="dashboard-grid">
+    <!-- Schedule Form -->
+    <div class="card">
+        <div class="card-icon" style="background: rgba(14, 165, 233, 0.1); color: var(--secondary);">➕</div>
+        <h3>Book an Appointment</h3>
+        <p style="margin-bottom: 1.5rem">Select your doctor and a convenient time.</p>
+        <form action="/create_appointment" method="post" style="display:flex; flex-direction:column; gap: 1rem; width: 100%;">
+            <div style="display:flex; flex-direction:column; gap: 0.5rem;">
+                <label for="doctor_name" style="font-weight: 600; color: var(--text-main);">Doctor Name</label>
+                <select name="doctor_name" style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                    <option value="Nick">Dr Nick Wilde</option>
+                    <option value="Judy">Dr Judy Hopps</option>
+                    <option value="Finnick">Dr Finnick</option>
+                    <option value="Gazelle">Dr Gazelle</option>
+                </select>
+            </div>
+            <div style="display:flex; flex-direction:column; gap: 0.5rem;">
+                <label for="appointment_date" style="font-weight: 600; color: var(--text-main);">Date & Time</label>
+                <input type="datetime-local" name="appointment_date" required style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            </div>
+            <button type="submit" class="btn-action btn-primary" style="margin-top: 1rem; width: 100%;">Create Appointment</button>
+        </form>
+    </div>
 
-        <label for="doctor">Doctor Name:</label>
-        <select name="doctor_name">
-<option value="Nick">Dr Nick Wilde</option>
-<option value="Judy">Dr Judy Hopps</option>
-<option value="Finnick">Dr Finnick</option>
-<option value="Gazelle">Dr Gazelle</option>
-
-</select>
-
-        <label for="date">Date:</label>
-        <input type="datetime-local"  name="appointment_date" required>
-
-        <button type="submit">Create Appointment</button>
-    </form>
-
-    <hr>
-
-    <h3>Existing Appointments</h3>
-    {% for appointment in appointments %}
-        <div class="appointment-item">
-            <p>
-                {{ appointment.patient_name }} with {{ appointment.doctor_name }} on {{ appointment.appointment_date }} Status: {{ appointment.status }}
-                <a href="/edit_appointment/{{ appointment.id }}">Edit</a> |
-                <a href="/delete_appointment/{{ appointment.id }}">Delete</a>
-            </p>
+    <!-- Existing Appointments -->
+    <div class="card" style="grid-column: span 2;">
+        <div class="card-icon">📋</div>
+        <h3>Existing Appointments</h3>
+        
+        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        {% if appointments %}
+            {% for appointment in appointments %}
+                <div style="background: var(--bg-body); padding: 1.5rem; border-radius: var(--radius-md); border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="margin-bottom: 0.25rem;">Dr. {{ appointment.doctor_name }}</h4>
+                        <p style="margin-bottom: 0.5rem; margin-top: 0;">Date: {{ appointment.appointment_date }}</p>
+                        <span style="font-size: 0.85rem; padding: 0.25rem 0.75rem; background: rgba(79, 70, 229, 0.1); color: var(--primary); border-radius: 20px; font-weight: bold;">Status: {{ appointment.status }}</span>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <a href="/edit_appointment/{{ appointment.id }}" class="btn-action" style="padding: 0.5rem 1rem;">Edit</a>
+                        <a href="/delete_appointment/{{ appointment.id }}" class="btn-action" style="padding: 0.5rem 1rem; color: var(--accent); border-color: rgba(244, 63, 94, 0.2);">Delete</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: var(--text-muted); text-align: center; margin-top: 2rem;">You have no appointments scheduled.</p>
+        {% endif %}
         </div>
-    {% endfor %}
-    {% endblock %}
-    <a href="/patient">
-<button type="button">Back to Dashboard</button>
-</a>
-</body>
-</html>
+    </div>
+</div>
+
+<div style="margin-top: 2rem; display: flex; gap: 1rem;">
+    {% if session.get('role') == 'patient' %}
+        <a href="/patient" class="btn-action">Back to Dashboard</a>
+    {% else %}
+        <a href="/doctor" class="btn-action">Back to Dashboard</a>
+    {% endif %}
+</div>
+{% endblock %}
