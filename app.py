@@ -162,13 +162,20 @@ def doctor_dashboard():
 def approve_appointment(id):
     if session.get('role') != 'doctor':
         return "Unauthorized access", 403
+    # csrf token check
+    if request.method == "POST":
+        token = session.get('_csrf_token')
+        form_token = request.form.get('_csrf_token')
+        if not token or token != form_token:
+            return "CSRF attack detected", 403
     conn = get_db_connection()
     appointment = conn.execute(
         'SELECT * FROM appointments WHERE id = ?',
          (id,)
          ).fetchone()
          #ownership check
-    if not appointment or appointment['doctor_name'] != session('username'):
+    if not appointment or appointment['doctor_name'] != session.get('username'):
+        conn.close()
         return "Unauthorized access", 403
     conn.execute('UPDATE appointments SET status = ? WHERE id = ?', 
     ('approved', id)
@@ -178,18 +185,27 @@ def approve_appointment(id):
     return redirect('/doctor')
 
 #rejecting appointments
-@app.route('/reject/<int:id>')
+@app.route('/reject/<int:id>', methods=['POST'])
 def reject_appointment(id):
     if session.get('role') != 'doctor':
         return "Unauthorized access", 403
+    # csrf token check
+    if request.method == "POST":
+        token = session.get('_csrf_token')
+        form_token = request.form.get('_csrf_token')
+        if not token or token != form_token:
+            return "CSRF attack detected", 403
     conn = get_db_connection()
     appointment = conn.execute(
         'SELECT * FROM appointments WHERE id = ?',
          (id,)
          ).fetchone()
-    if not appointment or appointment['doctor_name'] != session('username'):
+    if not appointment or appointment['doctor_name'] != session .get('username'):
+        conn.close()
         return "Unauthorized access", 403
-    conn.execute('UPDATE appointments SET status = ? WHERE id = ?', ('rejected', id))
+    conn.execute('UPDATE appointments SET status = ? WHERE id = ?', 
+    ('rejected', id)
+    )
     conn.commit()
     conn.close()
     return redirect('/doctor')
@@ -518,10 +534,8 @@ def csrf_protect():
     if request.method == "POST":
         token = session.get('_csrf_token')
         form_token = request.form.get('_csrf_token')
-
         if not token or token != form_token:
             return "CSRF attack detected", 403
-
 def generate_csrf_token():
     if '_csrf_token' not in session:
         session['_csrf_token'] = secrets.token_hex(16)
