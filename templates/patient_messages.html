@@ -30,6 +30,7 @@
         </div>
 
         <form action="/send_message" method="post" style="margin-top: 1rem; display: flex; gap: 1rem; flex-direction: column;">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             <select name="receiver" required style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                 <option value="" disabled selected>Select a Doctor...</option>
                 {% for doctor in doctors %}

@@ -1,8 +1,13 @@
 print("app starting")
 from flask import Flask, render_template, request, redirect, session 
+from werkzeug.security import generate_password_hash, check_password_hash
+import secrets
+import html
 import sqlite3
+from datetime import datetime, timedelta
 app = Flask(__name__, template_folder='templates')
-app.secret_key = 'medi-connect-secret-key'  # Replace with a real secret key
+app.secret_key = secrets.token_hex(16)
+#app.secret_key = 'medi-connect-secret-key'  # Replace with a real secret key
 
 #connection to the db
 def get_db_connection():
@@ -19,20 +24,22 @@ def login():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username').strip()
+        password = request.form.get('password')
+        if not username or not password:
+            return "Invalid input", 400
+        hashed_password = generate_password_hash(password)
 
         conn = get_db_connection()
-        #1st vulnerability: no password hashing
-
+        #1st vulnerability fixed: added password hashing and closing the connection
         conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-                     (username, password, "patient"))
+                     (username, hashed_password, "patient"))
         conn.commit()
-  
-
+        conn.close()  
         return redirect('/')
     return render_template('signup.html')
-#logging in
+
+#logging in vulnerability fixed
 @app.route('/login', methods=['GET', 'POST'])
 def login_post():
 
@@ -42,14 +49,79 @@ def login_post():
         password = request.form.get('password')
 
         conn = get_db_connection()
-        
-
-
-#vulnerability 1: no password hashing - passwords stored in plaintext
         user = conn.execute(
-            'SELECT * FROM users WHERE username = ? AND password = ?',
-            (username, password)
+            'SELECT * FROM users WHERE username = ?',
+            (username,)
         ).fetchone()
+        if not user:
+            conn.close()
+            return render_template('login.html', error="Invalid credentials")
+        if user['lock_until']:
+            lock_time = datetime.fromisoformat(user['lock_until'])
+            if datetime.now() < lock_time:
+                remaining = lock_time - datetime.now()
+                minutes = remaining.seconds // 60
+                seconds = remaining.seconds % 60
+                conn.close()
+                return render_template('login.html', 
+                error=f"Account is locked. Please try again after {minutes}m {seconds}s")
+                #check password
+        if check_password_hash(user['password'], password):
+            #reset failed attempts
+            conn.execute(
+                'UPDATE users SET failed_attempts = 0, lock_until = NULL WHERE username = ?', 
+                (username,)
+            )
+            conn.commit()
+            conn.close()
+            session.clear()
+            session['username'] = user['username']
+            session['role'] = user['role']
+            if user['role'] == 'admin':
+                return redirect('/admin')
+            elif user['role'] == 'doctor':
+                return redirect('/doctor')
+            else:
+                return redirect('/patient')
+        else:
+            #increment failed attempts
+            attempts = user['failed_attempts'] + 1
+#lock the account after 3 failed attempts
+            if attempts >= 3:
+                if not user['lock_until']:
+                    lock_time = datetime.now() + timedelta(minutes=5)
+
+                    conn.execute(
+                        "UPDATE users SET failed_attempts = ?, lock_until = ? WHERE username = ?",
+                        (attempts,lock_time.isoformat(), username)
+                )
+                else:
+                    conn.execute(
+                        "UPDATE users SET failed_attempts = ? WHERE username = ?",
+                        (attempts, username)
+                    )
+
+                conn.commit()
+                conn.close()
+
+                return render_template(
+                    'login.html',
+                    error="Account locked for 5 minutes due to multiple failed attempts"
+                )
+
+            else:
+                conn.execute(
+                    "UPDATE users SET failed_attempts = ? WHERE username = ?",
+                    (attempts, username)
+                )
+                conn.commit()
+                conn.close()
+
+                return render_template(
+                    'login.html',
+                    error=f"Invalid credentials. Attempt {attempts}/3"
+                )
+        return render_template('login.html')
         
 #vulnerability 2: weak authentication - brute force attack possible - no account lockout mechanism
         if user:
@@ -72,7 +144,7 @@ def login_post():
 def patient_dashboard():
     if session.get('role') != 'patient':
         return "Unauthorized access", 403  
-    #anyon e can access this page without authentication - vulnerability 4: unauthorized access
+    #anyone can access this page without authentication - vulnerability 4: unauthorized access
     return render_template('patient_dashboard.html')
 #doctors landing page
 @app.route('/doctor')
@@ -84,28 +156,44 @@ def doctor_dashboard():
     appointments = conn.execute('SELECT * FROM appointments WHERE doctor_name = ?', (session.get('username'),)).fetchall()
     conn.close()
     return render_template('doctor_dashboard.html', appointments=appointments)
+
 #approving appointments
-@app.route('/approve/<int:id>')
+@app.route('/approve/<int:id>', methods=['POST'])
 def approve_appointment(id):
     if session.get('role') != 'doctor':
         return "Unauthorized access", 403
     conn = get_db_connection()
-    #vulnerability 5: SQL injection possible
-    conn.execute('UPDATE appointments SET status = ? WHERE id = ?', ('approved', id))
+    appointment = conn.execute(
+        'SELECT * FROM appointments WHERE id = ?',
+         (id,)
+         ).fetchone()
+         #ownership check
+    if not appointment or appointment['doctor_name'] != session('username'):
+        return "Unauthorized access", 403
+    conn.execute('UPDATE appointments SET status = ? WHERE id = ?', 
+    ('approved', id)
+    )
     conn.commit()
     conn.close()
     return redirect('/doctor')
+
 #rejecting appointments
 @app.route('/reject/<int:id>')
 def reject_appointment(id):
     if session.get('role') != 'doctor':
         return "Unauthorized access", 403
     conn = get_db_connection()
-    #vulnerability 5: SQL injection possible
+    appointment = conn.execute(
+        'SELECT * FROM appointments WHERE id = ?',
+         (id,)
+         ).fetchone()
+    if not appointment or appointment['doctor_name'] != session('username'):
+        return "Unauthorized access", 403
     conn.execute('UPDATE appointments SET status = ? WHERE id = ?', ('rejected', id))
     conn.commit()
     conn.close()
     return redirect('/doctor')
+  
 #admin landing page
 @app.route('/admin')
 def admin_dashboard():
@@ -141,44 +229,125 @@ def add_doctor():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-      
+        if not username or not password:
+            return "Please fill in all fields", 400
+
+        hashed_password = generate_password_hash(password)
+
         conn = get_db_connection()
-        conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', (username, password, 'doctor'))
+        conn.execute(
+            'INSERT INTO users (username, password, role) VALUES (?, ?, ?)', 
+            (username, hashed_password, 'doctor'))
         conn.commit()
         conn.close()
+        print("Doctor added successfully")
         return redirect('/admin/users')
     return render_template('add_doctor.html')
 #appointments page
 @app.route('/appointments')
 def view_appointments():
+    if not session.get('username'):
+        return redirect('/')
     conn = get_db_connection()
-    appointments = conn.execute('SELECT * FROM appointments WHERE patient_name = ?', (session.get('username'),)).fetchall()
-    return render_template('appointments.html', appointments=appointments)
+    appointments = conn.execute(
+        'SELECT * FROM appointments WHERE patient_name = ?', 
+        (session.get('username'),)
+    ).fetchall()
+    #get doctors
+    doctors = conn.execute('SELECT username FROM users WHERE role = ?', ('doctor',)
+    ).fetchall()
+
+    #get availabiliy
+    availability = conn.execute(
+        "SELECT * FROM availability"
+        ).fetchall()
+    conn.close()
+    return render_template('appointments.html', 
+    appointments=appointments,
+    doctors=doctors,
+    availability=availability
+    )
 
 @app.route('/create_appointment', methods=['POST'])
 def create_appointment():
-    patient_name = session.get('username')  # Assuming the patient is logged in and their username is stored in the session
+    if session.get('role') != 'patient':
+        return "Unauthorized access", 403
+    slot = request.form.get('appointment_slot')
+
+    if not slot:
+        return "Please select an available slot", 400
+    try:
+        doctor_name, date_time = slot.split("|")
+        appointment_date = date_time.strip()
+    except ValueError:
+        return "Invalid slot format", 400
+
+    conn = get_db_connection()
+    #no duplicate appointment
+    existing = conn.execute(
+        "SELECT * FROM appointments WHERE doctor_name = ? AND appointment_date = ?",
+        (doctor_name, appointment_date)
+    ).fetchone()
+    
+    if existing:
+        conn.close()
+        return "You already have an appointment with this doctor at this time", 400
+    #ensuring slot exists in availability table
+    valid_slot = conn.execute(
+        "SELECT * FROM availability WHERE doctor_name = ? AND available_date || ' ' || available_time = ?",
+        (doctor_name, appointment_date)
+    ).fetchone()
+    
+    if not valid_slot:
+        conn.close()
+        return "Invalid time slot", 400
+    #insert appointment
+    conn.execute(
+        "INSERT INTO appointments (patient_name, doctor_name, appointment_date) VALUES (?, ?, ?)",
+        (session['username'], doctor_name, appointment_date)
+    )
+    #deleting slot
+    conn.execute(
+        "DELETE FROM availability WHERE id = ?",
+        (valid_slot['id'],)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect('/appointments')    
+
     doctor_name = request.form.get('doctor_name')
     appointment_date = request.form.get('appointment_date')
 
+    if not doctor_name or not appointment_date:
+        return "Please fill in all fields", 400
+
     conn = get_db_connection()
-#no input validation or sanitization - vulnerability 5: SQL injection possible  
     conn.execute('INSERT INTO appointments (patient_name, doctor_name, appointment_date) VALUES (?, ?, ?)',
-                 (patient_name, doctor_name, appointment_date))
+                 (session['username'],doctor_name, appointment_date)
+                 )
     conn.commit()
     conn.close()
     return redirect('/appointments')
 
     #deleting appointments
-@app.route('/delete_appointment/<int:id>')
+@app.route('/delete_appointment/<int:id>', methods=['POST'])
 def delete_appointment(id):
+    if not session.get('username'):
+        return "Unauthorized access", 403
     conn = get_db_connection()
-    #vulnerability 5: SQL injection possible
+    appointment = conn.execute(
+        'SELECT * FROM appointments WHERE id = ?', 
+        (id,)
+        ).fetchone()
+    if not appointment or appointment['patient_name'] != session.get('username'):
+        return "Unauthorized access", 403
     conn.execute('DELETE FROM appointments WHERE id = ?', (id,))
     conn.commit()
-
+    conn.close()
     return redirect('/appointments')
-#editting appointments
+
+#editing appointments
 @app.route('/edit_appointment/<int:id>')
 def edit_appointment(id):
     conn = get_db_connection()
@@ -234,12 +403,18 @@ def view_patient_records(username):
 
 @app.route('/send_message', methods=['POST'])
 def send_message():
-    sender = session.get('username')
-    receiver = request.form.get('receiver')
-    message = request.form.get('message')
+    if not session.get('username'):
+        return "Unauthorized access", 403
 
+    sender = session['username']
+    receiver = request.form.get('receiver')
+
+    # sanitize input
+    message = html.escape(request.form.get('message'))
+
+    if not message:
+        return "Empty message", 400
     conn = get_db_connection()
-    #vulnerability 5: SQL injection possible
     conn.execute('INSERT INTO messages (sender, receiver, message) VALUES (?, ?, ?)',
                  (sender, receiver, message))
     conn.commit()
@@ -250,13 +425,14 @@ def send_message():
 def add_prescription():
     if session.get('role') != 'doctor':
         return "Unauthorized access", 403
-    doctor = session.get('username')
+    doctor = session('username')
     patient = request.form.get('patient')
-    medication = request.form.get('medication')
-    notes = request.form.get('notes')
+    medication = html.escape(request.form.get('medication'))
+    notes = html.escape(request.form.get('notes'))
 
     conn = get_db_connection()
-    conn.execute('INSERT INTO prescriptions (doctor, patient, medication, notes) VALUES (?, ?, ?, ?)',
+    conn.execute(
+        'INSERT INTO prescriptions (doctor, patient, medication, notes) VALUES (?, ?, ?, ?)',
                  (doctor, patient, medication, notes))
     conn.commit()
     conn.close()
@@ -318,7 +494,46 @@ def doctor_inbox():
 def logout():
     session.clear()
     return redirect('/')
+@app.route('/doctor/add_availability', methods=['POST'])
+def add_availability():
 
+    if session.get('role') != 'doctor':
+        return "Unauthorized", 403
+
+    doctor = session.get('username')
+    date = request.form.get('date')
+    time = request.form.get('time')
+
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT INTO availability (doctor_name, available_date, available_time) VALUES (?, ?, ?)",
+        (doctor, date, time)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect('/doctor')
+@app.before_request
+def csrf_protect():
+    if request.method == "POST":
+        token = session.get('_csrf_token')
+        form_token = request.form.get('_csrf_token')
+
+        if not token or token != form_token:
+            return "CSRF attack detected", 403
+
+def generate_csrf_token():
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = secrets.token_hex(16)
+    return session['_csrf_token']
+
+app.jinja_env.globals['csrf_token'] = generate_csrf_token
+@app.after_request
+def add_no_cache_headers(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 if __name__ == '__main__':
-        app.run(debug=True)
+        app.run(debug=False)

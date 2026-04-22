@@ -28,6 +28,7 @@
                 </div>
 
                 <form action="/send_message" method="post" style="margin-top: 1rem; display: flex; gap: 1rem;">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="receiver" value="{{ patient }}">
                     <input type="text" name="message" placeholder="Reply to {{ patient }}..." required style="flex-grow: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                     <button type="submit" class="btn-action btn-primary">Reply</button>

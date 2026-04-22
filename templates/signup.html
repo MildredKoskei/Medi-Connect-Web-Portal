@@ -82,6 +82,7 @@
     <div class="container">
         <h2>Create MediConnect Account</h2>
         <form action="/signup" method="POST">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="username">User Name</label>
                 <input type="text" id="username" name="username" required>

@@ -45,6 +45,7 @@
         </div>
         
         <form action="/add_prescription" method="post" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="patient" value="{{ patient_name }}">
             <input type="text" name="medication" placeholder="Medication Name" required style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
             <input type="text" name="notes" placeholder="Dosage / Notes" required style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
