@@ -15,16 +15,34 @@
         <form action="/create_appointment" method="post" style="display:flex; flex-direction:column; gap: 1rem; width: 100%;">
             <div style="display:flex; flex-direction:column; gap: 0.5rem;">
                 <label for="doctor_name" style="font-weight: 600; color: var(--text-main);">Doctor Name</label>
-                <select name="doctor_name" style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <!-- <select name="doctor_name" style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                     <option value="Nick">Dr Nick Wilde</option>
                     <option value="Judy">Dr Judy Hopps</option>
                     <option value="Finnick">Dr Finnick</option>
                     <option value="Gazelle">Dr Gazelle</option>
+                </select> -->
+                <select name="doctor_name"  style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <option value=">-- Select Doctor --"></option>
+                {% for doctor in doctors %}
+                    <option value="{{ doctor.username }}">
+                        Dr. {{ doctor.username }}
+                </option>
+                {% endfor %}
                 </select>
             </div>
             <div style="display:flex; flex-direction:column; gap: 0.5rem;">
                 <label for="appointment_date" style="font-weight: 600; color: var(--text-main);">Date & Time</label>
-                <input type="datetime-local" name="appointment_date" required style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                  <select name="appointment_slot" required>
+
+    <option value="">-- Select Available Slot --</option>
+
+    {% for slot in availability %}
+        <option value="{{ slot.doctor_name }}|{{ slot.available_date }} {{ slot.available_time }}">
+            Dr {{ slot.doctor_name }} - {{ slot.available_date }} at {{ slot.available_time }}
+        </option>
+    {% endfor %}
+
+</select>
             </div>
             <button type="submit" class="btn-action btn-primary" style="margin-top: 1rem; width: 100%;">Create Appointment</button>
         </form>

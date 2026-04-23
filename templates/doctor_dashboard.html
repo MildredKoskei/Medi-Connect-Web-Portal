@@ -92,6 +92,31 @@
                 <a href="/doctor/inbox" class="btn-action">Open Inbox</a>
             </div>
         </div>
+     <div class="card">
+    <div class="card-icon">⏰</div>
+    <h3>Set Availability</h3>
+    <p>Tell patients when you are free.</p>
+
+    <form action="/doctor/add_availability" method="POST" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        
+        <label style="font-weight: 600; font-size: 0.9rem;">Date</label>
+        <input type="date" name="date" required class="form-control">
+
+        <label style="font-weight: 600; font-size: 0.9rem;">Time</label>
+        <select name="time" required class="form-control">
+            <option value="08:00 - 09:00">08:00 - 09:00</option>
+            <option value="09:00 - 10:00">09:00 - 10:00</option>
+            <option value="10:00 - 11:00">10:00 - 11:00</option>
+            <option value="11:00 - 12:00">11:00 - 12:00</option>
+            <option value="14:00 - 15:00">14:00 - 15:00</option>
+            <option value="15:00 - 16:00">15:00 - 16:00</option>
+        </select>
+
+        <button type="submit" class="btn-action btn-primary" style="width: 100%; margin-top: 0.25rem;">
+            Add Time Slot
+        </button>
+    </form>
+</div>  
     </div>
 </div>
 {% endblock %}

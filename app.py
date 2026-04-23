@@ -153,20 +153,50 @@ def add_doctor():
 def view_appointments():
     conn = get_db_connection()
     appointments = conn.execute('SELECT * FROM appointments WHERE patient_name = ?', (session.get('username'),)).fetchall()
-    return render_template('appointments.html', appointments=appointments)
+    #get doctors
+    doctors = conn.execute('SELECT username FROM users WHERE role = ?', ('doctor',)
+                           ).fetchall()
+    #get availability
+    availability = conn.execute('SELECT * FROM availability').fetchall()
+    conn.close()
+    return render_template('appointments.html', appointments=appointments, doctors=doctors, availability=availability)
 
+# @app.route('/create_appointment', methods=['POST'])
+# def create_appointment():
+#     patient_name = session.get('username')  # Assuming the patient is logged in and their username is stored in the session
+#     doctor_name = request.form.get('doctor_name')
+#     appointment_date = request.form.get('appointment_date')
+
+#     conn = get_db_connection()
+# #no input validation or sanitization - vulnerability 5: SQL injection possible  
+#     conn.execute('INSERT INTO appointments (patient_name, doctor_name, appointment_date) VALUES (?, ?, ?)',
+#                  (patient_name, doctor_name, appointment_date))
+#     conn.commit()
+#     conn.close()
+#     return redirect('/appointments')
 @app.route('/create_appointment', methods=['POST'])
 def create_appointment():
-    patient_name = session.get('username')  # Assuming the patient is logged in and their username is stored in the session
-    doctor_name = request.form.get('doctor_name')
-    appointment_date = request.form.get('appointment_date')
+    patient_name = session.get('username')
+    slot = request.form.get('appointment_slot')
+
+    doctor_name, date_time = slot.split("|")
+    appointment_date = date_time.strip()
 
     conn = get_db_connection()
-#no input validation or sanitization - vulnerability 5: SQL injection possible  
-    conn.execute('INSERT INTO appointments (patient_name, doctor_name, appointment_date) VALUES (?, ?, ?)',
-                 (patient_name, doctor_name, appointment_date))
+
+    conn.execute(
+        f"INSERT INTO appointments (patient_name, doctor_name, appointment_date) "
+        f"VALUES ('{patient_name}', '{doctor_name}', '{appointment_date}')"
+    )
+
+    conn.execute(
+        f"DELETE FROM availability WHERE doctor_name = '{doctor_name}' "
+        f"AND available_date || ' ' || available_time = '{appointment_date}'"
+    )
+
     conn.commit()
     conn.close()
+
     return redirect('/appointments')
 
     #deleting appointments
@@ -313,7 +343,21 @@ def doctor_inbox():
         conversations[other_party].append(msg)
         
     return render_template('doctor_inbox.html', conversations=conversations)
+@app.route('/doctor/add_availability', methods=['POST'])
+def add_availability():
+    doctor = session.get('username')
+    date = request.form.get('date')
+    time = request.form.get('time')
 
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT INTO availability (doctor_name, available_date, available_time) VALUES (?, ?, ?)",
+        (doctor, date, time)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect('/doctor')
 @app.route('/logout')
 def logout():
     session.clear()
