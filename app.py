@@ -56,7 +56,7 @@ def login_post():
         if not user:
             conn.close()
             return render_template('login.html', error="Invalid credentials")
-        if user['lock_until']:
+        if user['lock_until'] is not None:
             lock_time = datetime.fromisoformat(user['lock_until'])
             if datetime.now() < lock_time:
                 remaining = lock_time - datetime.now()
@@ -123,19 +123,6 @@ def login_post():
                 )
         return render_template('login.html')
         
-#vulnerability 2: weak authentication - brute force attack possible - no account lockout mechanism
-        if user:
-            session['username'] = user['username']
-            session['role'] = user['role']
-
-            if user['role'] == 'admin':
-                return redirect('/admin')
-            elif user['role'] == 'doctor':
-                return redirect('/doctor')
-            elif user['role'] == 'patient':
-                return redirect('/patient')
-
-        return render_template('login.html', error="Login unsuccessful. Please check your credentials.")
 
     # If it's a GET request, just show the login page
     return render_template('login.html')
@@ -332,19 +319,6 @@ def create_appointment():
 
     return redirect('/appointments')    
 
-    doctor_name = request.form.get('doctor_name')
-    appointment_date = request.form.get('appointment_date')
-
-    if not doctor_name or not appointment_date:
-        return "Please fill in all fields", 400
-
-    conn = get_db_connection()
-    conn.execute('INSERT INTO appointments (patient_name, doctor_name, appointment_date) VALUES (?, ?, ?)',
-                 (session['username'],doctor_name, appointment_date)
-                 )
-    conn.commit()
-    conn.close()
-    return redirect('/appointments')
 
     #deleting appointments
 @app.route('/delete_appointment/<int:id>', methods=['POST'])
@@ -441,7 +415,7 @@ def send_message():
 def add_prescription():
     if session.get('role') != 'doctor':
         return "Unauthorized access", 403
-    doctor = session('username')
+    doctor = session.get('username')
     patient = request.form.get('patient')
     medication = html.escape(request.form.get('medication'))
     notes = html.escape(request.form.get('notes'))
