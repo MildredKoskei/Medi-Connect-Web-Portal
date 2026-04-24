@@ -42,14 +42,16 @@ def login_post():
         password = request.form.get('password')
 
         conn = get_db_connection()
-        
-
+        query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+        user = conn.execute(query).fetchone()
 
 #vulnerability 1: no password hashing - passwords stored in plaintext
-        user = conn.execute(
-            'SELECT * FROM users WHERE username = ? AND password = ?',
-            (username, password)
-        ).fetchone()
+# query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+# user = conn.execute(query).fetchone()
+        # user = conn.execute(
+        #     'SELECT * FROM users WHERE username = ? AND password = ?',
+        #     (username, password)
+        # ).fetchone()
         
 #vulnerability 2: weak authentication - brute force attack possible - no account lockout mechanism
         if user:
